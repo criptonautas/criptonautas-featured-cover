@@ -4,7 +4,7 @@
 # The image is built and published by this repo's GitHub Actions on every push to main.
 services:
   criptonautas-featured-cover:
-    image: ghcr.io/somos-criptonautas/criptonautas-featured-cover:latest
+    image: ghcr.io/criptonautas/criptonautas-featured-cover:latest
     container_name: criptonautas-featured-cover
     restart: unless-stopped
     env_file: cover.env

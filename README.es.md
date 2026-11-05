@@ -4,7 +4,7 @@
 
 Mantenido por Criptonautas. Sin afiliación ni respaldo de la Ghost Foundation ni de Civilized Discourse Construction Kit, Inc.
 
-Genera una portada 1200×630 para los posts de Ghost sin imagen destacada y para los topics de wiki, curso y glosario de Discourse: una etiqueta y el título sobre la plantilla de Criptonautas de [brand-kit](https://github.com/somos-criptonautas/brand-kit). El título va en Inter Tight, hasta 3 líneas, cortado solo. Sale en PNG o WebP sin metadatos.
+Genera una portada 1200×630 para los posts de Ghost sin imagen destacada y para los topics de wiki, curso y glosario de Discourse: una etiqueta y el título sobre la plantilla de Criptonautas de [brand-kit](https://github.com/criptonautas/brand-kit). El título va en Inter Tight, hasta 3 líneas, cortado solo. Sale en PNG o WebP sin metadatos.
 
 Es un servicio HTTP interno y chico. Lo llama n8n; nunca se expone a internet.
 
@@ -16,7 +16,7 @@ Es un servicio HTTP interno y chico. Lo llama n8n; nunca se expone a internet.
 
 ## Instalar
 
-GitHub Actions prueba la imagen y la publica en `ghcr.io/somos-criptonautas/criptonautas-featured-cover` en cada push a `main`. En el servidor no se construye nada.
+GitHub Actions prueba la imagen y la publica en `ghcr.io/criptonautas/criptonautas-featured-cover` en cada push a `main`. En el servidor no se construye nada.
 
 Al lado del `docker-compose.yml` que corre n8n, crear el archivo del token:
 
@@ -80,6 +80,6 @@ GitHub Actions corre las pruebas unitarias, construye la imagen, revisa el conte
 
 ## Créditos y licencia
 
-Fuente: [Inter Tight](https://github.com/googlefonts/inter-tight) de Rasmus Andersson (SIL Open Font License, [`assets/OFL-inter-tight.txt`](assets/OFL-inter-tight.txt)). Logo: de [brand-kit](https://github.com/somos-criptonautas/brand-kit).
+Fuente: [Inter Tight](https://github.com/googlefonts/inter-tight) de Rasmus Andersson (SIL Open Font License, [`assets/OFL-inter-tight.txt`](assets/OFL-inter-tight.txt)). Logo: de [brand-kit](https://github.com/criptonautas/brand-kit).
 
 Código: [MIT](LICENSE). Texto del README: [CC BY-NC-SA 4.0](CC-BY-NC-SA-4.0.txt).
