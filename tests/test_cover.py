@@ -55,6 +55,20 @@ class CoverTest(unittest.TestCase):
         self.assertTrue(all(rgb.getpixel((x, y)) == (232, 230, 225) for x in range(700, 760) for y in range(140, 360)))
         self.assertNotEqual(png, render_cover("Curso de trading", "Cómo leer el volumen sin confundirlo con la tendencia"))
 
+    def test_channel_style_has_no_metadata_and_draws_the_hash_in_the_slot(self):
+        png = render_cover("Canal", "monero", style="channel")
+        self.assertLessEqual(png_chunk_types(png), PNG_KEEP)
+        rgb = Image.open(io.BytesIO(png)).convert("RGB")
+        violet = sum(1 for x in range(760, WIDTH, 8) for y in range(0, HEIGHT, 8) if rgb.getpixel((x, y)) == (88, 20, 234))
+        self.assertGreater(violet, 200)
+        self.assertTrue(all(rgb.getpixel((x, y)) == (232, 230, 225) for x in range(700, 760) for y in range(140, 360)))
+
+    def test_channel_name_steps_down_to_one_line_and_rejects_what_never_fits(self):
+        self.assertNotEqual(render_cover("Canal", "privacidad-seguridad", style="channel"),
+                            render_cover("Canal", "monero", style="channel"))
+        with self.assertRaises(InvalidCoverInput):
+            render_cover("Canal", "x" * 40, style="channel")
+
     def test_rejects_unknown_style(self):
         with self.assertRaises(InvalidCoverInput):
             render_cover("Curso", "Prueba", style="poster")

@@ -2,6 +2,7 @@
 """Draws the 1200x630 Criptonautas cover: category, title and an optional illustration on the brand-kit template.
 
     python cover.py --category Course --title "What is a wallet" [--image art.png] [--slug wallet] [--output covers]
+    python cover.py --style channel --category Canal --title monero
 
 Writes <slug>-cover.png and <slug>-cover.webp with no metadata.
 Needs Inter Tight installed for cairo (the Dockerfile does it); otherwise cairo silently uses another face.
@@ -29,10 +30,15 @@ TITLE_X, TITLE_Y0, TITLE_STEP, TITLE_SIZE, MAX_LINES = 64, 196, 66, 56, 3
 # Pillow measures without the negative letter-spacing, so it overestimates: what fits here fits in cairo.
 TITLE_MAX_WIDTH = SLOT_X - TITLE_X - 64
 MAX_TITLE, MAX_CATEGORY, MAX_IMAGE_BYTES = 140, 30, 10 * 1024 * 1024
-STYLES = ("article", "community")
+STYLES = ("article", "community", "channel")
 LABEL_BASELINE, LABEL_SIZE, LABEL_TRACKING = 112, 22, 2.5
-# The pill above the label says where the page lives.
+# The pill above the label says where the page lives; a channel's own cover goes without one.
 CHANNELS = {"article": "BLOG", "community": "COMUNIDAD"}
+# A channel (a blog tag) puts a whole hash, centred, where the articles have their hatching.
+HASH_SIZE, HASH_X, HASH_BASELINE = 400, 854, 460
+# Its name is one line at twice the title size, so it fills the column a three-line title would;
+# a long name steps down until it fits.
+CHANNEL_TITLE_SIZE, CHANNEL_TITLE_BASELINE = 112, 262
 PNG_KEEP = {b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND"}
 
 
@@ -89,17 +95,25 @@ def load_illustration(data):
 
 def build_cover_svg(category, title, image=None, style="article"):
     if style not in STYLES:
-        raise InvalidCoverInput("style must be article or community")
+        raise InvalidCoverInput("style must be article, community or channel")
     category, title = " ".join(category.split()), " ".join(title.split())
     if not title or not category:
         raise InvalidCoverInput("category and title are required")
     if len(title) > MAX_TITLE or len(category) > MAX_CATEGORY:
         raise InvalidCoverInput(f"at most {MAX_CATEGORY} characters of category and {MAX_TITLE} of title")
-    tspans = "".join(f'<tspan x="{TITLE_X}" y="{TITLE_Y0 + i * TITLE_STEP}">{html.escape(line)}</tspan>'
-                     for i, line in enumerate(wrap_title(title)))
+    if style == "channel":
+        title_size = channel_title_size(title)
+        tspans = f'<tspan x="{TITLE_X}" y="{CHANNEL_TITLE_BASELINE}">{html.escape(title)}</tspan>'
+    else:
+        title_size = TITLE_SIZE
+        tspans = "".join(f'<tspan x="{TITLE_X}" y="{TITLE_Y0 + i * TITLE_STEP}">{html.escape(line)}</tspan>'
+                         for i, line in enumerate(wrap_title(title)))
     if image:
         slot = (f'<image x="{SLOT_X}" y="0" width="{WIDTH - SLOT_X}" height="{HEIGHT}" preserveAspectRatio="xMidYMid slice" '
                 f'href="data:image/png;base64,{load_illustration(image)}"/>')
+    elif style == "channel":
+        slot = (f'<text x="{HASH_X}" y="{HASH_BASELINE}" font-family="Inter Tight" font-weight="800" '
+                f'font-size="{HASH_SIZE}" fill="{VIOLET}">#</text>')
     elif style == "community":  # a grid instead of the diagonal hatching tells forum pages from articles
         lines = [f'<line x1="{x}" y1="0" x2="{x}" y2="{HEIGHT}"/>' for x in range(SLOT_X, WIDTH, 24)]
         lines += [f'<line x1="{SLOT_X}" y1="{y}" x2="{WIDTH}" y2="{y}"/>' for y in range(0, HEIGHT, 24)]
@@ -109,7 +123,7 @@ def build_cover_svg(category, title, image=None, style="article"):
         slot = f'<g stroke="{HALFTONE}" stroke-width="1.2">{hatch}</g>'
     view_box, lockup = svg_inner(LOCKUP.read_text())
     lockup_height = 48
-    pill, label_x = channel_pill(CHANNELS[style])
+    pill, label_x = channel_pill(CHANNELS[style]) if style in CHANNELS else ("", TITLE_X)
     if label_x + tracked_width(category.upper()) > SLOT_X - 32:
         raise InvalidCoverInput("the category does not fit next to the channel pill. Shorten it.")
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {HEIGHT}" width="{WIDTH}" height="{HEIGHT}">'
@@ -118,10 +132,20 @@ def build_cover_svg(category, title, image=None, style="article"):
             f'<g clip-path="url(#s)">{slot}</g>'
             f'{pill}<text x="{label_x:.1f}" y="{LABEL_BASELINE}" font-family="Inter Tight" font-weight="700" '
             f'font-size="{LABEL_SIZE}" letter-spacing="{LABEL_TRACKING}" fill="{VIOLET}">{html.escape(category.upper())}</text>'
-            f'<text font-family="Inter Tight" font-weight="800" letter-spacing="-1.1" font-size="{TITLE_SIZE}" fill="{INK}">{tspans}</text>'
+            f'<text font-family="Inter Tight" font-weight="800" letter-spacing="-1.1" font-size="{title_size}" fill="{INK}">{tspans}</text>'
             f'<svg x="{TITLE_X}" y="{HEIGHT - 64 - lockup_height}" width="{lockup_height * 7800 / 1550}" height="{lockup_height}" '
             f'viewBox="{view_box}">{lockup}</svg>'
             f'</svg>')
+
+
+def channel_title_size(name):
+    """The largest size, from CHANNEL_TITLE_SIZE down to TITLE_SIZE, at which the name fits on one line."""
+    font = ImageFont.truetype(str(TITLE_FONT), CHANNEL_TITLE_SIZE)
+    font.set_variation_by_axes([800])
+    size = CHANNEL_TITLE_SIZE * TITLE_MAX_WIDTH / font.getlength(name)
+    if size < TITLE_SIZE:
+        raise InvalidCoverInput("the channel name does not fit on one line. Shorten it.")
+    return min(CHANNEL_TITLE_SIZE, int(size))
 
 
 def tracked_width(text):

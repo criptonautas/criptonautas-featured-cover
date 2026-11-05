@@ -1,7 +1,7 @@
 """HTTP service for the internal Docker network. n8n calls it; it is never published to the internet.
 
 POST /cover   Authorization: Bearer <COVER_TOKEN>
-              JSON {"category", "title", "format": "png" | "webp", "style": "article" | "community"}
+              JSON {"category", "title", "format": "png" | "webp", "style": "article" | "community" | "channel"}
               -> the image, with Content-Disposition cover.<format>
 GET  /health  -> 200 ok
 
