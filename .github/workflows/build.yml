@@ -19,10 +19,10 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4.4.0
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5.6.0
+      - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.13"
       - name: Install Inter Tight and Python packages
